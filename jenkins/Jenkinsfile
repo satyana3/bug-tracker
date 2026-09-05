@@ -2,11 +2,18 @@ pipeline {
     agent any
 
     stages {
-        stage('Hello') {
+        stage('Unit test cases') {
+            agent {
+                docker {
+                    image 'snakee/golang-junit:1.21'
+                    reuseNode true
+                }
+            }
+
             steps {
-                echo 'Hello World'
-                bat 'echo "Hello Jenkins"'
-                bat 'date /T'
+                dir('bugtracker-backend') {
+                    sh 'go test -v ./...'
+                }
             }
         }
     }
