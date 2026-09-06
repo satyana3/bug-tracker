@@ -1,0 +1,18 @@
+pipeline {
+    agent any
+
+    stages {
+
+        stage('Unit Tests - Backend') {
+            steps {
+                bat 'docker run --rm -v "%CD%\\bugtracker-backend:/app" -w /app snakee/golang-junit:1.21 go test -v ./...'
+            }
+        }
+
+        stage('Unit Tests - Frontend') {
+            steps {
+                bat 'docker run --rm -v "%CD%\\bugtracker-frontend:/app" -w /app node:20-alpine sh -c "npm ci && npm test"'
+            }
+        }
+    }
+}
