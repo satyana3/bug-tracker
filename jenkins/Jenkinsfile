@@ -5,8 +5,8 @@ pipeline {
 
         stage('Unit Tests - Backend') {
             steps {
-                // Wrapped the test, reporting, and coverage commands in 'sh -c' so they run inside the container sequentially
-                bat 'docker run --rm -v "%CD%\\bugtracker-backend:/app" -w /app snakee/golang-junit:1.21 sh -c "go test -v -coverprofile=coverage.out -covermode=atomic ./... 2>&1 | go-junit-report > test-results.xml && go tool cover -html=coverage.out -o coverage.html"'
+                // Wrapped test execution, coverage generation, directory creation, and moving files inside 'sh -c'
+                bat 'docker run --rm -v "%CD%\\bugtracker-backend:/app" -w /app snakee/golang-junit:1.21 sh -c "go test -v -coverprofile=coverage.out -covermode=atomic ./... 2>&1 | go-junit-report > test-results.xml && go tool cover -html=coverage.out -o coverage.html && mkdir -p reports && mv coverage.html reports/"'
             }
         }
 
@@ -22,6 +22,12 @@ pipeline {
         always {
             junit 'bugtracker-backend/test-results.xml'
             junit 'bugtracker-frontend/test-results.xml'
+            
+            publishHTML target: [
+                reportDir: 'bugtracker-backend/reports',
+                reportFiles: 'coverage.html',
+                reportName: 'Backend Coverage Report'
+            ]
         }
     }
 }
