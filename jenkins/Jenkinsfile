@@ -1,0 +1,27 @@
+pipeline {
+    agent any
+
+    stages {
+
+        stage('Unit Tests - Backend') {
+            steps {
+                // Wrapped the test, reporting, and coverage commands in 'sh -c' so they run inside the container sequentially
+                bat 'docker run --rm -v "%CD%\\bugtracker-backend:/app" -w /app snakee/golang-junit:1.21 sh -c "go test -v -coverprofile=coverage.out -covermode=atomic ./... 2>&1 | go-junit-report > test-results.xml && go tool cover -html=coverage.out -o coverage.html"'
+            }
+        }
+
+        stage('Unit Tests - Frontend') {
+            steps {
+                bat 'docker run --rm -v "%CD%\\bugtracker-frontend:/app" -w /app node:20-alpine sh -c "npm ci && npm test"'
+            }
+        }
+
+    }
+
+    post {
+        always {
+            junit 'bugtracker-backend/test-results.xml'
+            junit 'bugtracker-frontend/test-results.xml'
+        }
+    }
+}
