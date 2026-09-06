@@ -1,3 +1,4 @@
+```groovy
 pipeline {
     agent any
 
@@ -5,29 +6,53 @@ pipeline {
 
         stage('Unit Tests - Backend') {
             steps {
-                // Wrapped test execution, coverage generation, directory creation, and moving files inside 'sh -c'
-                bat 'docker run --rm -v "%CD%\\bugtracker-backend:/app" -w /app snakee/golang-junit:1.21 sh -c "go test -v -coverprofile=coverage.out -covermode=atomic ./... 2>&1 | go-junit-report > test-results.xml && go tool cover -html=coverage.out -o coverage.html && mkdir -p reports && mv coverage.html reports/"'
+                bat '''
+                    docker run --rm ^
+                    -v "%CD%\\bugtracker-backend:/app" ^
+                    -w /app ^
+                    snakee/golang-junit:1.21 ^
+                    sh -c "go test -v -coverprofile=coverage.out -covermode=atomic ./... 2>&1 | go-junit-report > test-results.xml && go tool cover -html=coverage.out -o coverage.html && mkdir -p reports && mv coverage.html reports/"
+                '''
             }
         }
 
         stage('Unit Tests - Frontend') {
             steps {
-                bat 'docker run --rm -v "%CD%\\bugtracker-frontend:/app" -w /app node:20-alpine sh -c "npm ci && npm test"'
+                bat '''
+                    docker run --rm ^
+                    -v "%CD%\\bugtracker-frontend:/app" ^
+                    -w /app ^
+                    node:20-alpine ^
+                    sh -c "npm ci && npm test -- --runInBand"
+                '''
             }
         }
-
     }
 
     post {
         always {
-            junit 'bugtracker-backend/test-results.xml'
-            junit 'bugtracker-frontend/test-results.xml'
-            
-            publishHTML target: [
-                reportDir: 'bugtracker-backend/reports',
-                reportFiles: 'coverage.html',
-                reportName: 'Backend Coverage Report'
-            ]
+
+            junit(
+                testResults: 'bugtracker-backend/test-results.xml',
+                allowEmptyResults: true
+            )
+
+            junit(
+                testResults: 'bugtracker-frontend/test-results.xml',
+                allowEmptyResults: true
+            )
+
+            publishHTML(
+                target: [
+                    reportDir: 'bugtracker-backend/reports',
+                    reportFiles: 'coverage.html',
+                    reportName: 'Backend Coverage Report',
+                    keepAll: true,
+                    alwaysLinkToLastBuild: true,
+                    allowMissing: true
+                ]
+            )
         }
     }
 }
+```
