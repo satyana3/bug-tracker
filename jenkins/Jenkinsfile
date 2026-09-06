@@ -5,7 +5,8 @@ pipeline {
 
         stage('Unit Tests - Backend') {
             steps {
-                bat 'docker run --rm -v "%CD%\\bugtracker-backend:/app" -w /app snakee/golang-junit:1.21 go test -v ./... 2>&1 | go-junit-report > test-results.xml'
+                // Wrapped the test and reporting commands in 'sh -c' so go-junit-report runs inside the container
+                bat 'docker run --rm -v "%CD%\\bugtracker-backend:/app" -w /app snakee/golang-junit:1.21 sh -c "go test -v ./... 2>&1 | go-junit-report > test-results.xml"'
             }
         }
 
