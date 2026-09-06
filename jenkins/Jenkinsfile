@@ -1,4 +1,3 @@
-```groovy
 pipeline {
     agent any
 
@@ -31,7 +30,6 @@ pipeline {
 
     post {
         always {
-
             junit(
                 testResults: 'bugtracker-backend/test-results.xml',
                 allowEmptyResults: true
@@ -55,4 +53,3 @@ pipeline {
         }
     }
 }
-```
