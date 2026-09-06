@@ -14,5 +14,10 @@ pipeline {
                 bat 'docker run --rm -v "%CD%\\bugtracker-frontend:/app" -w /app node:20-alpine sh -c "npm ci && npm test"'
             }
         }
+        post {
+            always {
+                junit 'back-tracker-frontend/test-results.xml'
+            }
+        }
     }
 }
